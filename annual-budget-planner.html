@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年間予算計画表</title>
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  header {
+    padding: 8px 2px 20px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+
+  header p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--navy-light);
+  }
+
+  section {
+    margin-bottom: 22px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-head h2 {
+    font-size: 14.5px;
+    margin: 0;
+    color: var(--navy);
+  }
+
+  .section-head .subtotal {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    line-height: 1.4;
+  }
+  .section-head .subtotal small {
+    display: block;
+    font-weight: 400;
+    font-size: 10.5px;
+    color: #8a8272;
+  }
+
+  .income .section-head { background: var(--sage-light); }
+  .expense .section-head { background: var(--coral-light); }
+
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 4px 8px 6px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 4px;
+    border-bottom: 1px solid #f0ece1;
+  }
+  .row:last-child { border-bottom: none; }
+
+  .row input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font-size: 13.5px;
+    padding: 6px 3px;
+    color: var(--ink);
+    border-bottom: 1px solid transparent;
+  }
+  .row input[type="text"]:focus {
+    outline: none;
+    border-bottom: 1px solid var(--navy-light);
+  }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .row .unit {
+    flex: none;
+    font-size: 11.5px;
+    color: #8a8272;
+    white-space: nowrap;
+  }
+
+  .row input.amount {
+    flex: none;
+    width: 68px;
+    min-width: 0;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 13.5px;
+    padding: 6px 4px;
+    text-align: right;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .row input.amount:focus { outline: 1px solid var(--navy-light); }
+
+  .row input.times {
+    flex: none;
+    width: 30px;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 13.5px;
+    padding: 6px 2px;
+    text-align: center;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .row input.times:focus { outline: 1px solid var(--navy-light); }
+
+  .row button.del {
+    flex: none;
+    border: none;
+    background: none;
+    color: #b7ab90;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 2px;
+  }
+  .row button.del:hover { color: var(--coral); }
+
+  .add-row {
+    display: block;
+    width: calc(100% - 16px);
+    margin: 8px 8px 10px;
+    padding: 9px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: none;
+    color: var(--navy-light);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .add-row:hover { background: var(--cream); }
+
+  .summary {
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: 10px;
+    padding: 18px 16px;
+    margin-bottom: 18px;
+  }
+
+  .summary h2 {
+    font-size: 14px;
+    margin: 0 0 14px;
+    color: var(--gold-light);
+    font-weight: 600;
+  }
+
+  .summary .line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .summary .line:last-child { border-bottom: none; }
+  .summary .line span:last-child { font-variant-numeric: tabular-nums; }
+
+  .summary .line.total {
+    font-size: 16px;
+    font-weight: 700;
+    padding-top: 12px;
+    color: var(--gold-light);
+  }
+
+  .summary .line.avg { opacity: 0.68; font-size: 11.5px; }
+
+  .invest-box {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 14px;
+    margin-bottom: 18px;
+  }
+
+  .invest-box h2 {
+    font-size: 14.5px;
+    margin: 0 0 4px;
+    color: var(--navy);
+  }
+
+  .invest-box .hint {
+    font-size: 12px;
+    color: #8a8272;
+    margin: 0 0 14px;
+  }
+
+  .invest-result-solo {
+    padding: 14px 12px;
+    border-radius: 8px;
+    background: var(--sage-light);
+  }
+  .invest-result-solo.negative { background: var(--coral-light); }
+
+  .invest-result-solo .label {
+    font-size: 12.5px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .invest-result-solo .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+  .invest-result-solo.negative .value { color: #a8442a; }
+
+  .invest-result-solo .annual-note {
+    font-size: 11.5px;
+    color: #7c7768;
+    margin-top: 4px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #a89f8a;
+    margin-top: 24px;
+  }
+
+  .save-note {
+    text-align: center;
+    font-size: 11px;
+    color: #a89f8a;
+    margin: -6px 0 18px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>年間予算計画表</h1>
+  </header>
+
+  <section class="income">
+    <div class="section-head">
+      <h2>収入</h2>
+      <div class="subtotal" id="incomeSubtotal">¥0<small>年間</small></div>
+    </div>
+    <ul class="rows" id="incomeRows"></ul>
+    <button class="add-row" id="addIncome">＋ 収入項目を追加</button>
+  </section>
+
+  <section class="expense">
+    <div class="section-head">
+      <h2>支出</h2>
+      <div class="subtotal" id="expenseSubtotal">¥0<small>年間</small></div>
+    </div>
+    <ul class="rows" id="expenseRows"></ul>
+    <button class="add-row" id="addExpense">＋ 支出項目を追加</button>
+  </section>
+
+  <div class="summary">
+    <h2>収支サマリー</h2>
+    <div class="line"><span>年間 収入合計</span><span id="sumIncomeY"></span></div>
+    <div class="line"><span>年間 支出合計</span><span id="sumExpenseY"></span></div>
+    <div class="line total"><span>年間 収支（黒字）</span><span id="sumBalanceY"></span></div>
+    <div class="line avg"><span>月平均 収入</span><span id="sumIncomeM"></span></div>
+    <div class="line avg"><span>月平均 支出</span><span id="sumExpenseM"></span></div>
+  </div>
+
+  <div class="invest-box">
+    <h2>投資にいくら回すか</h2>
+    <p class="hint">年間の収支（収入－支出）を12で割った、投資に回せる月額の目安です。</p>
+    <div class="invest-result-solo" id="investResultBox">
+      <div class="label">月に投資へ回せる目安</div>
+      <div class="value" id="investSuggested">¥0</div>
+      <div class="annual-note" id="investAnnualNote">年間の収支：¥0</div>
+    </div>
+  </div>
+
+  <footer>年間予算計画表 ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "annual-budget-planner-v2";
+
+  const defaultData = {
+    income: [
+      { name: "給与（手取り）", amount: null, times: 12 }
+    ],
+    expense: [
+      { name: "家賃・住宅費", amount: null, times: 12 },
+      { name: "食費", amount: null, times: 12 },
+      { name: "水道・光熱費", amount: null, times: 12 },
+      { name: "通信費", amount: null, times: 12 },
+      { name: "保険", amount: null, times: 12 }
+    ]
+  };
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(defaultData);
+      const parsed = JSON.parse(raw);
+      if (!parsed.income || !parsed.expense) return structuredClone(defaultData);
+      return parsed;
+    } catch (e) {
+      return structuredClone(defaultData);
+    }
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  let state = load();
+
+  const incomeRowsEl = document.getElementById("incomeRows");
+  const expenseRowsEl = document.getElementById("expenseRows");
+
+  const fmt = (n) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
+
+  function renderRows(container, list, onChange) {
+    container.innerHTML = "";
+    list.forEach((item, idx) => {
+      const row = document.createElement("li");
+      row.className = "row";
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.value = item.name;
+      nameInput.placeholder = "項目名";
+      nameInput.addEventListener("input", () => {
+        item.name = nameInput.value;
+        save();
+      });
+
+      const amountInput = document.createElement("input");
+      amountInput.type = "number";
+      amountInput.className = "amount";
+      amountInput.inputMode = "numeric";
+      amountInput.step = "1000";
+      amountInput.placeholder = "0";
+      amountInput.value = (item.amount === null || item.amount === undefined) ? "" : item.amount;
+      amountInput.addEventListener("input", () => {
+        item.amount = amountInput.value === "" ? null : (parseFloat(amountInput.value) || 0);
+        onChange();
+      });
+
+      const unitYen = document.createElement("span");
+      unitYen.className = "unit";
+      unitYen.textContent = "円×";
+
+      const timesInput = document.createElement("input");
+      timesInput.type = "number";
+      timesInput.className = "times";
+      timesInput.inputMode = "numeric";
+      timesInput.min = "0";
+      timesInput.max = "365";
+      timesInput.value = (item.times === null || item.times === undefined) ? 12 : item.times;
+      timesInput.addEventListener("input", () => {
+        item.times = timesInput.value === "" ? 0 : (parseFloat(timesInput.value) || 0);
+        onChange();
+      });
+
+      const unitKai = document.createElement("span");
+      unitKai.className = "unit";
+      unitKai.textContent = "回";
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "del";
+      delBtn.textContent = "×";
+      delBtn.title = "削除";
+      delBtn.addEventListener("click", () => {
+        list.splice(idx, 1);
+        onChange();
+        renderAll();
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(amountInput);
+      row.appendChild(unitYen);
+      row.appendChild(timesInput);
+      row.appendChild(unitKai);
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    });
+  }
+
+  function itemAnnualTotal(list) {
+    return list.reduce((s, i) => s + (Number(i.amount) || 0) * (Number(i.times) || 0), 0);
+  }
+
+  function recalc() {
+    const incomeAnnual = itemAnnualTotal(state.income);
+    const expenseAnnual = itemAnnualTotal(state.expense);
+    const balanceAnnual = incomeAnnual - expenseAnnual;
+
+    document.getElementById("incomeSubtotal").innerHTML = fmt(incomeAnnual) + "<small>年間</small>";
+    document.getElementById("expenseSubtotal").innerHTML = fmt(expenseAnnual) + "<small>年間</small>";
+
+    document.getElementById("sumIncomeY").textContent = fmt(incomeAnnual);
+    document.getElementById("sumExpenseY").textContent = fmt(expenseAnnual);
+    document.getElementById("sumBalanceY").textContent = fmt(balanceAnnual);
+
+    document.getElementById("sumIncomeM").textContent = fmt(incomeAnnual / 12);
+    document.getElementById("sumExpenseM").textContent = fmt(expenseAnnual / 12);
+
+    const investSuggested = balanceAnnual / 12;
+    document.getElementById("investSuggested").textContent = fmt(investSuggested);
+    document.getElementById("investAnnualNote").textContent = "年間の収支：" + fmt(balanceAnnual);
+
+    const box = document.getElementById("investResultBox");
+    if (balanceAnnual < 0) {
+      box.classList.add("negative");
+    } else {
+      box.classList.remove("negative");
+    }
+
+    save();
+  }
+
+  function renderAll() {
+    renderRows(incomeRowsEl, state.income, recalc);
+    renderRows(expenseRowsEl, state.expense, recalc);
+    recalc();
+  }
+
+  document.getElementById("addIncome").addEventListener("click", () => {
+    state.income.push({ name: "", amount: null, times: 12 });
+    renderAll();
+  });
+
+  document.getElementById("addExpense").addEventListener("click", () => {
+    state.expense.push({ name: "", amount: null, times: 12 });
+    renderAll();
+  });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
