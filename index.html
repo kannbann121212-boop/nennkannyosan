@@ -97,6 +97,7 @@
 
   .income .section-head { background: var(--sage-light); }
   .expense .section-head { background: var(--coral-light); }
+  .savings .section-head { background: var(--gold-light); }
 
   .rows {
     list-style: none;
@@ -317,18 +318,29 @@
     <button class="add-row" id="addExpense">＋ 支出項目を追加</button>
   </section>
 
+  <section class="savings">
+    <div class="section-head">
+      <h2>貯蓄</h2>
+      <div class="subtotal" id="savingsSubtotal">¥0<small>年間</small></div>
+    </div>
+    <ul class="rows" id="savingsRows"></ul>
+    <button class="add-row" id="addSavings">＋ 貯蓄項目を追加</button>
+  </section>
+
   <div class="summary">
     <h2>収支サマリー</h2>
     <div class="line"><span>年間 収入合計</span><span id="sumIncomeY"></span></div>
     <div class="line"><span>年間 支出合計</span><span id="sumExpenseY"></span></div>
+    <div class="line"><span>年間 貯蓄合計</span><span id="sumSavingsY"></span></div>
     <div class="line total"><span>年間 収支（黒字）</span><span id="sumBalanceY"></span></div>
     <div class="line avg"><span>月平均 収入</span><span id="sumIncomeM"></span></div>
     <div class="line avg"><span>月平均 支出</span><span id="sumExpenseM"></span></div>
+    <div class="line avg"><span>月平均 貯蓄</span><span id="sumSavingsM"></span></div>
   </div>
 
   <div class="invest-box">
     <h2>投資にいくら回すか</h2>
-    <p class="hint">年間の収支（収入－支出）を12で割った、投資に回せる月額の目安です。</p>
+    <p class="hint">年間の収支（収入－支出－貯蓄）を12で割った、投資に回せる月額の目安です。</p>
     <div class="invest-result-solo" id="investResultBox">
       <div class="label">月に投資へ回せる目安</div>
       <div class="value" id="investSuggested">¥0</div>
@@ -354,6 +366,9 @@
       { name: "水道・光熱費", amount: null, times: 12 },
       { name: "通信費", amount: null, times: 12 },
       { name: "保険", amount: null, times: 12 }
+    ],
+    savings: [
+      { name: "積立貯金", amount: null, times: 12 }
     ]
   };
 
@@ -363,6 +378,7 @@
       if (!raw) return structuredClone(defaultData);
       const parsed = JSON.parse(raw);
       if (!parsed.income || !parsed.expense) return structuredClone(defaultData);
+      if (!parsed.savings) parsed.savings = structuredClone(defaultData.savings);
       return parsed;
     } catch (e) {
       return structuredClone(defaultData);
@@ -377,6 +393,7 @@
 
   const incomeRowsEl = document.getElementById("incomeRows");
   const expenseRowsEl = document.getElementById("expenseRows");
+  const savingsRowsEl = document.getElementById("savingsRows");
 
   const fmt = (n) => "¥" + Math.round(n || 0).toLocaleString("ja-JP");
 
@@ -454,17 +471,21 @@
   function recalc() {
     const incomeAnnual = itemAnnualTotal(state.income);
     const expenseAnnual = itemAnnualTotal(state.expense);
-    const balanceAnnual = incomeAnnual - expenseAnnual;
+    const savingsAnnual = itemAnnualTotal(state.savings);
+    const balanceAnnual = incomeAnnual - expenseAnnual - savingsAnnual;
 
     document.getElementById("incomeSubtotal").innerHTML = fmt(incomeAnnual) + "<small>年間</small>";
     document.getElementById("expenseSubtotal").innerHTML = fmt(expenseAnnual) + "<small>年間</small>";
+    document.getElementById("savingsSubtotal").innerHTML = fmt(savingsAnnual) + "<small>年間</small>";
 
     document.getElementById("sumIncomeY").textContent = fmt(incomeAnnual);
     document.getElementById("sumExpenseY").textContent = fmt(expenseAnnual);
+    document.getElementById("sumSavingsY").textContent = fmt(savingsAnnual);
     document.getElementById("sumBalanceY").textContent = fmt(balanceAnnual);
 
     document.getElementById("sumIncomeM").textContent = fmt(incomeAnnual / 12);
     document.getElementById("sumExpenseM").textContent = fmt(expenseAnnual / 12);
+    document.getElementById("sumSavingsM").textContent = fmt(savingsAnnual / 12);
 
     const investSuggested = balanceAnnual / 12;
     document.getElementById("investSuggested").textContent = fmt(investSuggested);
@@ -483,6 +504,7 @@
   function renderAll() {
     renderRows(incomeRowsEl, state.income, recalc);
     renderRows(expenseRowsEl, state.expense, recalc);
+    renderRows(savingsRowsEl, state.savings, recalc);
     recalc();
   }
 
@@ -493,6 +515,11 @@
 
   document.getElementById("addExpense").addEventListener("click", () => {
     state.expense.push({ name: "", amount: null, times: 12 });
+    renderAll();
+  });
+
+  document.getElementById("addSavings").addEventListener("click", () => {
+    state.savings.push({ name: "", amount: null, times: 12 });
     renderAll();
   });
 
