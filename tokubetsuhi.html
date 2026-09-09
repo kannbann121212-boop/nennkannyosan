@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>特別費の積立計算</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='8' y='8' width='112' height='112' rx='25' fill='%232c3e50'/%3E%3Crect x='32' y='76' width='16' height='24' rx='4' fill='%238ba888'/%3E%3Crect x='56' y='60' width='16' height='40' rx='4' fill='%238ba888'/%3E%3Crect x='80' y='44' width='16' height='56' rx='4' fill='%238ba888'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="特別費の積立計算">
+<meta name="theme-color" content="#2c3e50">
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  header {
+    padding: 8px 2px 16px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 21px;
+    margin: 0;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+
+  section {
+    margin-bottom: 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 { font-size: 14.5px; margin: 0; color: var(--navy); }
+  .section-head .count { font-size: 11.5px; color: #8a8272; }
+  .section-body { padding: 14px; }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .item-card {
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .item-card:last-child { margin-bottom: 0; }
+
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .item-top input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 7px 8px;
+    color: var(--ink);
+  }
+  .item-top button.del {
+    flex: none;
+    border: none;
+    background: none;
+    color: #b7ab90;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 2px;
+  }
+  .item-top button.del:hover { color: var(--coral); }
+
+  .seg {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+  }
+  .seg button {
+    flex: 1;
+    border: none;
+    background: #fff;
+    font-size: 11.5px;
+    padding: 7px 0;
+    color: #8a8272;
+    cursor: pointer;
+  }
+  .seg button.active { background: var(--navy); color: #fff; font-weight: 600; }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    color: #8a8272;
+  }
+  .field-row:last-child { margin-bottom: 0; }
+  .field-row .field-label { flex-shrink: 0; width: 72px; }
+  .field-row input[type="number"] {
+    min-width: 0;
+    flex: 1;
+    text-align: right;
+    font-size: 12.5px;
+    padding: 7px 6px;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    color: var(--ink);
+  }
+  .field-row .unit { flex-shrink: 0; font-size: 11px; color: #8a8272; }
+  .ym-pair { display: flex; gap: 4px; flex: 1; }
+  .ym-pair input { flex: 1; }
+
+  .item-result {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--sage-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .item-result .label { font-size: 11px; color: var(--navy); }
+  .item-result .value { font-size: 15px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .item-result.warn { background: var(--coral-light); }
+  .item-result.warn .value { font-size: 11.5px; font-weight: 600; color: #a8442a; }
+
+  .add-btn-row { display: flex; gap: 8px; margin-top: 4px; }
+  .add-row {
+    flex: 1;
+    padding: 9px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: none;
+    font-size: 12.5px;
+    color: var(--navy-light);
+    cursor: pointer;
+  }
+  .add-row:hover { background: var(--cream); }
+
+  .empty-note { font-size: 12.5px; color: #8a8272; text-align: center; padding: 14px 4px; }
+
+  .summary {
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: 10px;
+    padding: 18px 16px;
+  }
+  .summary h2 { font-size: 14px; margin: 0 0 14px; color: var(--gold-light); font-weight: 600; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+  .summary-box { background: rgba(245,241,232,0.08); border-radius: 8px; padding: 10px 12px; }
+  .summary-box .label { font-size: 11px; color: rgba(245,241,232,0.68); margin-bottom: 4px; }
+  .summary-box .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .total-caption { font-size: 11px; color: rgba(245,241,232,0.6); text-align: center; margin-bottom: 10px; }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(245,241,232,0.12);
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row .bname { color: rgba(245,241,232,0.85); }
+  .breakdown-row .bval { color: var(--gold-light); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  footer { text-align: center; font-size: 11px; color: #a89f8a; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header><h1>特別費の積立計算</h1></header>
+
+  <section>
+    <div class="section-head">
+      <h2>積立項目</h2>
+      <span class="count" id="itemCount"></span>
+    </div>
+    <div class="section-body">
+      <div id="itemList"></div>
+      <div class="empty-note" id="emptyNote" style="display:none;">項目がありません。下のボタンから追加してください</div>
+      <div class="add-btn-row">
+        <button class="add-row" id="addAnnualBtn">＋ 年間見積もり型</button>
+        <button class="add-row" id="addTargetBtn">＋ 目標時期あり型</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="summary">
+    <h2>特別費の積立合計</h2>
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="label">年間の特別費 合計</div>
+        <div class="value" id="totalAnnual">¥0</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">毎月の積立額 合計</div>
+        <div class="value" id="totalMonthly">¥0</div>
+      </div>
+    </div>
+    <div class="total-caption">毎月、各項目の積立額を先取りしておくのが目安です</div>
+    <div id="breakdownList"></div>
+  </div>
+
+  <footer>特別費の積立 ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+const SELF_KEY = 'tokubetsuhi-tsumitate-v2';
+const OLD_TOKUBETSUHI_KEY = 'tokubetsuhi-tsumitate-v1';
+const OLD_FLOWCHART_KEY = 'yosan-kumitate-flowchart-v1';
+
+function newId(){
+  return 'i' + Date.now() + Math.random().toString(16).slice(2);
+}
+
+let state = loadState();
+migrateFromOldTools();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SELF_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.items)) return parsed;
+    }
+  }catch(e){}
+  return { items: [] };
+}
+
+function saveState(){
+  localStorage.setItem(SELF_KEY, JSON.stringify(state));
+}
+
+function migrateFromOldTools(){
+  if(state.migrated) return;
+
+  try{
+    const raw = localStorage.getItem(OLD_TOKUBETSUHI_KEY);
+    if(raw){
+      const old = JSON.parse(raw);
+      if(old && Array.isArray(old.items)){
+        old.items.forEach(oi=>{
+          const name = (oi.name||'').trim();
+          if(!name) return;
+          state.items.push({
+            id:newId(), name:name, mode: oi.mode||'annual',
+            annualAmount: oi.annualAmount||'', targetAmount: oi.targetAmount||'',
+            years: oi.years||'', months: oi.months||'', saved: oi.saved||''
+          });
+        });
+      }
+    }
+  }catch(e){}
+
+  try{
+    const raw = localStorage.getItem(OLD_FLOWCHART_KEY);
+    if(raw){
+      const old = JSON.parse(raw);
+      if(old && Array.isArray(old.items)){
+        old.items.forEach(oi=>{
+          if(oi.regular !== false || !oi.fundEnabled) return;
+          const name = (oi.name||'').trim();
+          if(!name) return;
+          if(state.items.find(it=>(it.name||'').trim()===name)) return;
+          state.items.push({
+            id:newId(), name:name, mode: oi.fundMode||'annual',
+            annualAmount: oi.fundAnnualAmount||'', targetAmount: oi.fundTargetAmount||'',
+            years: oi.fundYears||'', months: oi.fundMonths||'', saved: oi.fundSaved||''
+          });
+        });
+      }
+    }
+  }catch(e){}
+
+  state.migrated = true;
+  saveState();
+}
+
+function yen(n){
+  return '¥' + Math.round(n).toLocaleString('ja-JP');
+}
+function escapeAttr(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function computeMonthly(item){
+  if(item.mode === 'annual'){
+    const amt = parseFloat(item.annualAmount)||0;
+    return { monthly: amt/12, valid:true };
+  }else{
+    const totalMonths = (parseInt(item.years)||0)*12 + (parseInt(item.months)||0);
+    const remaining = Math.max((parseFloat(item.targetAmount)||0) - (parseFloat(item.saved)||0), 0);
+    if(totalMonths <= 0){
+      return { monthly:0, valid:false, remaining:remaining };
+    }
+    return { monthly: remaining/totalMonths, valid:true, totalMonths:totalMonths };
+  }
+}
+
+function renderItemList(){
+  const container = document.getElementById('itemList');
+  container.innerHTML = '';
+  document.getElementById('emptyNote').style.display = state.items.length ? 'none' : 'block';
+  document.getElementById('itemCount').textContent = state.items.length ? state.items.length + '件' : '';
+
+  state.items.forEach((item, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'item-card';
+
+    let fieldsHtml = '';
+    if(item.mode === 'annual'){
+      fieldsHtml = `
+        <div class="field-row">
+          <span class="field-label">年間想定額</span>
+          <input type="number" inputmode="numeric" class="f-annual" value="${item.annualAmount}" placeholder="例: 30000">
+          <span class="unit">円/年</span>
+        </div>`;
+    }else{
+      fieldsHtml = `
+        <div class="field-row">
+          <span class="field-label">目標金額</span>
+          <input type="number" inputmode="numeric" class="f-target" value="${item.targetAmount}" placeholder="例: 2000000">
+          <span class="unit">円</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">あと</span>
+          <div class="ym-pair">
+            <input type="number" inputmode="numeric" class="f-years" value="${item.years}" placeholder="年">
+            <input type="number" inputmode="numeric" class="f-months" value="${item.months}" placeholder="ヶ月">
+          </div>
+          <span class="unit">後</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">すでに貯蓄</span>
+          <input type="number" inputmode="numeric" class="f-saved" value="${item.saved}" placeholder="0">
+          <span class="unit">円</span>
+        </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="item-top">
+        <input type="text" class="f-name" value="${escapeAttr(item.name)}" placeholder="項目名(例：家電の修理、車の買い替え)" maxlength="16">
+        <button class="del">×</button>
+      </div>
+      <div class="seg mode-seg">
+        <button data-val="annual" class="${item.mode==='annual'?'active':''}">年間見積もり</button>
+        <button data-val="target" class="${item.mode==='target'?'active':''}">目標時期あり</button>
+      </div>
+      <div class="fields-wrap">${fieldsHtml}</div>
+      <div class="item-result-wrap"></div>`;
+
+    const nameInput = card.querySelector('.f-name');
+    const delBtn = card.querySelector('.del');
+    const modeBtns = card.querySelectorAll('.mode-seg button');
+    const resultWrap = card.querySelector('.item-result-wrap');
+
+    function refreshResult(){
+      const r = computeMonthly(item);
+      if(r.valid){
+        resultWrap.innerHTML = `<div class="item-result"><span class="label">毎月の積立額</span><span class="value">${yen(r.monthly)}</span></div>`;
+      }else{
+        resultWrap.innerHTML = `<div class="item-result warn"><span class="label">毎月の積立額</span><span class="value">期間を入力してください</span></div>`;
+      }
+    }
+
+    nameInput.addEventListener('input', e=>{ item.name = e.target.value; saveState(); renderTotals(); });
+    delBtn.addEventListener('click', ()=>{ state.items.splice(idx,1); saveState(); render(); });
+
+    modeBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(item.mode === btn.dataset.val) return;
+        item.mode = btn.dataset.val;
+        saveState();
+        render();
+      });
+    });
+
+    function bindNumber(selector, field){
+      const el = card.querySelector(selector);
+      if(!el) return;
+      el.addEventListener('input', e=>{
+        item[field] = e.target.value;
+        saveState();
+        refreshResult();
+        renderTotals();
+      });
+    }
+    bindNumber('.f-annual','annualAmount');
+    bindNumber('.f-target','targetAmount');
+    bindNumber('.f-years','years');
+    bindNumber('.f-months','months');
+    bindNumber('.f-saved','saved');
+
+    refreshResult();
+    container.appendChild(card);
+  });
+}
+
+let currentMonthlyTotal = 0;
+
+function renderTotals(){
+  let total = 0;
+  const rows = [];
+  state.items.forEach(item=>{
+    const r = computeMonthly(item);
+    const name = (item.name||'').trim();
+    if(r.valid && r.monthly > 0){
+      total += r.monthly;
+      rows.push({ name: name || '（無題）', monthly:r.monthly });
+    }
+  });
+  currentMonthlyTotal = total;
+  document.getElementById('totalMonthly').textContent = yen(total);
+  document.getElementById('totalAnnual').textContent = yen(total*12);
+  const list = document.getElementById('breakdownList');
+  list.innerHTML = rows.map(r=>`<div class="breakdown-row"><span class="bname">${escapeAttr(r.name)}</span><span class="bval">${yen(r.monthly)}</span></div>`).join('');
+}
+
+document.getElementById('addAnnualBtn').addEventListener('click', ()=>{
+  state.items.push({ id:newId(), name:'', mode:'annual', annualAmount:'', targetAmount:'', years:'', months:'', saved:'' });
+  saveState();
+  render();
+});
+document.getElementById('addTargetBtn').addEventListener('click', ()=>{
+  state.items.push({ id:newId(), name:'', mode:'target', annualAmount:'', targetAmount:'', years:'', months:'', saved:'' });
+  saveState();
+  render();
+});
+
+function render(){
+  renderItemList();
+  renderTotals();
+}
+
+render();
+</script>
+</body>
+</html>
