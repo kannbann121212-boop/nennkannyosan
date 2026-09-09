@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>残高チェック</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='8' y='8' width='112' height='112' rx='25' fill='%232c3e50'/%3E%3Crect x='32' y='76' width='16' height='24' rx='4' fill='%238ba888'/%3E%3Crect x='56' y='60' width='16' height='40' rx='4' fill='%238ba888'/%3E%3Crect x='80' y='44' width='16' height='56' rx='4' fill='%238ba888'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#2c3e50">
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  header {
+    padding: 8px 2px 16px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: 21px;
+    margin: 0;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+
+  section {
+    margin-bottom: 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 {
+    font-size: 14.5px;
+    margin: 0;
+    color: var(--navy);
+  }
+  .section-head .count {
+    font-size: 11.5px;
+    color: #8a8272;
+  }
+
+  .section-body { padding: 14px; }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .field-row:last-child { margin-bottom: 0; }
+  .field-row label {
+    font-size: 12.5px;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .field-row .unit {
+    font-size: 12px;
+    color: #8a8272;
+    flex-shrink: 0;
+  }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .field-row input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 8px;
+    text-align: right;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+  .field-row input[type="number"]:focus { outline: 1px solid var(--navy-light); }
+  .field-row.compact input[type="number"] { flex: none; width: 80px; }
+
+  .cycle-note {
+    font-size: 11.5px;
+    color: #8a8272;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+
+  .item-card {
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 9px;
+    margin-bottom: 8px;
+  }
+  .item-card:last-child { margin-bottom: 0; }
+
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+  }
+  .item-top input[type="number"].day {
+    flex: none;
+    width: 40px;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 12.5px;
+    padding: 7px 4px;
+    text-align: center;
+    color: var(--ink);
+  }
+  .item-top input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 7px 8px;
+    color: var(--ink);
+  }
+  .item-top input[type="number"].amount {
+    flex: none;
+    width: 84px;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 7px 6px;
+    text-align: right;
+    color: var(--ink);
+  }
+  .item-top button.del {
+    flex: none;
+    border: none;
+    background: none;
+    color: #b7ab90;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 2px;
+  }
+  .item-top button.del:hover { color: var(--coral); }
+
+  .seg {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .seg button {
+    flex: 1;
+    border: none;
+    background: #fff;
+    font-size: 11.5px;
+    padding: 7px 0;
+    color: #8a8272;
+    cursor: pointer;
+  }
+  .seg button.active.type-income { background: var(--sage); color: #fff; font-weight: 600; }
+  .seg button.active.type-expense { background: var(--coral); color: #fff; font-weight: 600; }
+
+  .add-row {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 9px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: none;
+    color: var(--navy-light);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .add-row:hover { background: var(--cream); }
+
+  .empty-note {
+    font-size: 12.5px;
+    color: #8a8272;
+    text-align: center;
+    padding: 14px 4px;
+  }
+
+  .status-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .status-banner.ok { background: var(--sage-light); color: var(--navy); }
+  .status-banner.warn { background: var(--coral-light); color: #a8442a; }
+  .status-banner strong { font-weight: 700; }
+
+  .balance-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 2px;
+    border-bottom: 1px solid #f0ece1;
+    font-size: 12.5px;
+  }
+  .balance-row:last-child { border-bottom: none; }
+  .balance-row.is-today {
+    background: var(--gold-light);
+    border-radius: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .balance-row.is-negative .b-balance { color: var(--coral); font-weight: 700; }
+  .b-day { flex-shrink: 0; width: 32px; font-weight: 700; color: #8a8272; }
+  .b-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .b-amount {
+    flex-shrink: 0;
+    font-weight: 600;
+    width: 82px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .b-amount.income { color: var(--sage); }
+  .b-amount.expense { color: var(--coral); }
+  .b-balance {
+    flex-shrink: 0;
+    width: 90px;
+    text-align: right;
+    font-weight: 700;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+  .balance-start-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 2px 10px;
+    font-size: 12.5px;
+    color: #8a8272;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 4px;
+  }
+  .balance-start-row .val { font-weight: 700; color: var(--navy); }
+
+  .summary {
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: 10px;
+    padding: 18px 16px;
+  }
+  .summary h2 {
+    font-size: 14px;
+    margin: 0 0 14px;
+    color: var(--gold-light);
+    font-weight: 600;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .summary-box {
+    background: rgba(245,241,232,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .summary-box .label { font-size: 11px; color: rgba(245,241,232,0.68); margin-bottom: 4px; }
+  .summary-box .value { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .summary-box.full { grid-column: 1 / -1; }
+  .balance-plus { color: var(--gold-light); }
+  .balance-minus { color: #f0a184; }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #a89f8a;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>残高チェック</h1>
+  </header>
+
+  <section>
+    <div class="section-head"><h2>給料日と開始残高</h2></div>
+    <div class="section-body">
+      <div class="field-row compact">
+        <label>給料日</label>
+        <input type="number" inputmode="numeric" id="paydayInput" placeholder="例: 25" min="1" max="31">
+        <span class="unit">日</span>
+      </div>
+      <div class="field-row">
+        <label>開始残高</label>
+        <input type="number" inputmode="numeric" id="startBalanceInput" placeholder="例: 300000">
+        <span class="unit">円</span>
+      </div>
+      <div class="cycle-note" id="cycleRangeNote"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>収入・支出の予定</h2>
+      <span class="count" id="itemCount"></span>
+    </div>
+    <div class="section-body">
+      <div id="itemList"></div>
+      <div class="empty-note" id="emptyNote" style="display:none;">予定がありません。下のボタンから追加してください</div>
+      <button class="add-row" id="addItemBtn">＋ 予定を追加</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2 id="balanceCheckTitle">残高チェック</h2></div>
+    <div class="section-body">
+      <div id="statusBanner"></div>
+      <div class="balance-start-row">
+        <span>開始残高</span>
+        <span class="val" id="balanceStartVal">¥0</span>
+      </div>
+      <ul class="rows" id="balanceList"></ul>
+    </div>
+  </section>
+
+  <div class="summary">
+    <h2>このサイクルの合計</h2>
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="label">収入合計</div>
+        <div class="value" id="sumIncome">¥0</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">支出合計</div>
+        <div class="value" id="sumExpense">¥0</div>
+      </div>
+      <div class="summary-box full">
+        <div class="label">サイクル末残高予測</div>
+        <div class="value" id="sumEndBalance">¥0</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>残高チェック ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+const SELF_KEY = 'zandaka-check-v1';
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SELF_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.items)){
+        if(parsed.startBalance === undefined) parsed.startBalance = '';
+        if(parsed.payday === undefined) parsed.payday = '';
+        return parsed;
+      }
+    }
+  }catch(e){}
+  return { startBalance:'', payday:'', items: [] };
+}
+
+function paydayValue(){
+  let p = parseInt(state.payday);
+  if(isNaN(p)) return null;
+  if(p < 1) p = 1;
+  if(p > 31) p = 31;
+  return p;
+}
+
+function cycleOrder(day, payday){
+  const d = parseInt(day) || 1;
+  return d >= payday ? d - payday : d - payday + 31;
+}
+
+function saveState(){
+  localStorage.setItem(SELF_KEY, JSON.stringify(state));
+}
+
+function newId(){
+  return 'i' + Date.now() + Math.random().toString(16).slice(2);
+}
+
+function todayDay(){
+  return new Date().getDate();
+}
+
+function yen(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + '¥' + Math.round(Math.abs(n)).toLocaleString('ja-JP');
+}
+function yenSigned(n){
+  const sign = n >= 0 ? '+' : '-';
+  return sign + '¥' + Math.round(Math.abs(n)).toLocaleString('ja-JP');
+}
+function escapeAttr(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderItemList(){
+  const container = document.getElementById('itemList');
+  container.innerHTML = '';
+  document.getElementById('emptyNote').style.display = state.items.length ? 'none' : 'block';
+  document.getElementById('itemCount').textContent = state.items.length ? state.items.length + '件' : '';
+
+  state.items.forEach((item)=>{
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.innerHTML = `
+      <div class="item-top">
+        <input type="number" inputmode="numeric" class="day" value="${item.day}" min="1" max="31" placeholder="日">
+        <input type="text" class="f-name" value="${escapeAttr(item.name)}" placeholder="予定名" maxlength="14">
+        <input type="number" inputmode="numeric" class="amount" value="${item.amount}" placeholder="0">
+        <button class="del">×</button>
+      </div>
+      <div class="seg">
+        <button data-val="income" class="${item.type==='income'?'active type-income':''}">収入</button>
+        <button data-val="expense" class="${item.type==='expense'?'active type-expense':''}">支出</button>
+      </div>`;
+
+    const dayInput = card.querySelector('.day');
+    const nameInput = card.querySelector('.f-name');
+    const amountInput = card.querySelector('.amount');
+    const delBtn = card.querySelector('.del');
+    const typeBtns = card.querySelectorAll('.seg button');
+
+    dayInput.addEventListener('input', e=>{
+      const raw = e.target.value;
+      item.day = raw === '' ? '' : raw;
+      saveState(); renderBalanceCheck(); renderTotals();
+    });
+    dayInput.addEventListener('blur', e=>{
+      let v = parseInt(e.target.value) || 1;
+      v = Math.min(31, Math.max(1, v));
+      item.day = v;
+      e.target.value = v;
+      saveState(); renderItemList(); renderBalanceCheck(); renderTotals();
+    });
+    nameInput.addEventListener('input', e=>{ item.name = e.target.value; saveState(); renderBalanceCheck(); });
+    amountInput.addEventListener('input', e=>{ item.amount = e.target.value; saveState(); renderBalanceCheck(); renderTotals(); });
+    delBtn.addEventListener('click', ()=>{
+      const idx = state.items.indexOf(item);
+      if(idx>-1) state.items.splice(idx,1);
+      saveState(); renderAll();
+    });
+    typeBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        item.type = btn.dataset.val;
+        saveState(); renderAll();
+      });
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function renderBalanceCheck(){
+  const start = parseFloat(state.startBalance) || 0;
+  document.getElementById('balanceStartVal').textContent = yen(start);
+
+  const payday = paydayValue();
+
+  if(payday === null){
+    document.getElementById('balanceCheckTitle').textContent = '残高チェック';
+    document.getElementById('cycleRangeNote').textContent = '上に給料日を入力すると、給料日〜翌月給料日前日までの1サイクルで計算します(未入力の間は計算されません)';
+    document.getElementById('balanceList').innerHTML = '';
+    document.getElementById('statusBanner').innerHTML = `<div class="status-banner warn">⚠️ <span>まず上の「給料日」を入力してください。</span></div>`;
+    return { rows: [], running: start };
+  }
+
+  const endDay = payday === 1 ? 31 : payday - 1;
+  document.getElementById('balanceCheckTitle').textContent = `残高チェック（${payday}日〜${endDay}日）`;
+  document.getElementById('cycleRangeNote').textContent = `${payday}日を「給料日」として、${payday}日〜翌月${endDay}日までを1サイクルとして計算します`;
+
+  const sorted = state.items
+    .filter(it => it.name || parseFloat(it.amount))
+    .slice()
+    .sort((a,b)=> cycleOrder(a.day, payday) - cycleOrder(b.day, payday));
+
+  let running = start;
+  let minBalance = start;
+  let minDay = null;
+  let firstNegativeDay = null;
+  let firstNegativeAmount = null;
+
+  const rows = sorted.map(item=>{
+    const amt = parseFloat(item.amount) || 0;
+    const delta = item.type === 'income' ? amt : -amt;
+    running += delta;
+    if(running < minBalance){ minBalance = running; minDay = item.day; }
+    if(running < 0 && firstNegativeDay === null){
+      firstNegativeDay = item.day;
+      firstNegativeAmount = running;
+    }
+    return { day:item.day, name:item.name || '（無題）', delta, balanceAfter:running };
+  });
+
+  const t = todayDay();
+  const list = document.getElementById('balanceList');
+  list.innerHTML = rows.map(r=>`
+    <li class="balance-row ${r.balanceAfter<0?'is-negative':''} ${r.day===t?'is-today':''}">
+      <span class="b-day">${r.day}日</span>
+      <span class="b-name">${escapeAttr(r.name)}</span>
+      <span class="b-amount ${r.delta>=0?'income':'expense'}">${yenSigned(r.delta)}</span>
+      <span class="b-balance">${yen(r.balanceAfter)}</span>
+    </li>`).join('');
+
+  const banner = document.getElementById('statusBanner');
+  if(firstNegativeDay !== null){
+    banner.innerHTML = `<div class="status-banner warn">⚠️ <span><strong>${firstNegativeDay}日</strong>に残高が<strong>${yen(firstNegativeAmount)}</strong>となり、マイナスになる見込みです。支出を減らすか、それまでの収入を見直しましょう。</span></div>`;
+  }else if(rows.length){
+    banner.innerHTML = `<div class="status-banner ok">✅ <span>月内で残高がマイナスになる予定はありません。最も少なくなるのは${minDay!==null ? minDay+'日時点で' : ''}<strong>${yen(minBalance)}</strong>です。</span></div>`;
+  }else{
+    banner.innerHTML = '';
+  }
+
+  return { rows, running };
+}
+
+function renderTotals(){
+  let income = 0, expense = 0;
+  state.items.forEach(item=>{
+    const amt = parseFloat(item.amount) || 0;
+    if(item.type === 'income') income += amt;
+    else expense += amt;
+  });
+  const start = parseFloat(state.startBalance) || 0;
+  const endBalance = start + income - expense;
+
+  document.getElementById('sumIncome').textContent = yen(income);
+  document.getElementById('sumExpense').textContent = yen(expense);
+  const endEl = document.getElementById('sumEndBalance');
+  endEl.textContent = yen(endBalance);
+  endEl.className = 'value ' + (endBalance>=0 ? 'balance-plus' : 'balance-minus');
+}
+
+function renderAll(){
+  renderItemList();
+  renderBalanceCheck();
+  renderTotals();
+}
+
+document.getElementById('startBalanceInput').value = state.startBalance;
+document.getElementById('startBalanceInput').addEventListener('input', e=>{
+  state.startBalance = e.target.value;
+  saveState();
+  renderBalanceCheck();
+  renderTotals();
+});
+
+document.getElementById('paydayInput').value = state.payday;
+document.getElementById('paydayInput').addEventListener('input', e=>{
+  state.payday = e.target.value;
+  saveState();
+  renderBalanceCheck();
+  renderTotals();
+});
+document.getElementById('paydayInput').addEventListener('blur', e=>{
+  let v = parseInt(e.target.value) || 1;
+  v = Math.min(31, Math.max(1, v));
+  state.payday = v;
+  e.target.value = v;
+  saveState();
+  renderBalanceCheck();
+  renderTotals();
+});
+
+document.getElementById('addItemBtn').addEventListener('click', ()=>{
+  state.items.push({ id:newId(), day:todayDay(), name:'', amount:'', type:'expense' });
+  saveState();
+  renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
