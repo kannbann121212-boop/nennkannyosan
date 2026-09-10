@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>サブスク・固定費の見直し</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='8' y='8' width='112' height='112' rx='25' fill='%232c3e50'/%3E%3Crect x='32' y='76' width='16' height='24' rx='4' fill='%238ba888'/%3E%3Crect x='56' y='60' width='16' height='40' rx='4' fill='%238ba888'/%3E%3Crect x='80' y='44' width='16' height='56' rx='4' fill='%238ba888'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="サブスク・固定費の見直し">
+<meta name="theme-color" content="#2c3e50">
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--cream); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { padding: 8px 2px 16px; border-bottom: 2px solid var(--navy); margin-bottom: 20px; }
+  header h1 { font-size: 21px; margin: 0; color: var(--navy); letter-spacing: 0.02em; }
+
+  section { margin-bottom: 18px; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--cream-dark); border-bottom: 1px solid var(--line); }
+  .section-head h2 { font-size: 14.5px; margin: 0; color: var(--navy); }
+  .section-head .subtotal { font-size: 12.5px; font-weight: 600; color: var(--navy); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.4; }
+  .section-head .subtotal small { display: block; font-weight: 400; font-size: 10.5px; color: #8a8272; }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .rows { list-style: none; margin: 0; padding: 4px 8px 6px; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 4px;
+    border-bottom: 1px solid #f0ece1;
+  }
+  .row:last-child { border-bottom: none; }
+  .row.inactive { opacity: 0.55; }
+  .row input[type="text"] {
+    flex: 1 1 auto; min-width: 0; border: none; background: transparent;
+    font-size: 13.5px; padding: 6px 3px; color: var(--ink); border-bottom: 1px solid transparent;
+  }
+  .row input[type="text"]:focus { outline: none; border-bottom: 1px solid var(--navy-light); }
+  .row .unit { flex: none; font-size: 11.5px; color: #8a8272; white-space: nowrap; }
+  .row input.amount {
+    flex: none; width: 72px; border: none; background: var(--cream); border-radius: 6px;
+    font-size: 13.5px; padding: 6px 4px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .row input.amount:focus { outline: 1px solid var(--navy-light); }
+  .row .toggle {
+    flex: none; border: none; border-radius: 20px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .row .toggle.active { background: var(--sage-light); color: #4c6b4a; }
+  .row .toggle.inactive-btn { background: var(--coral-light); color: #a8442a; }
+  .row button.del {
+    flex: none; border: none; background: none; color: #b7ab90;
+    font-size: 16px; line-height: 1; cursor: pointer; padding: 4px 2px;
+  }
+  .row button.del:hover { color: var(--coral); }
+
+  .add-row {
+    display: block; width: calc(100% - 16px); margin: 8px 8px 10px; padding: 9px;
+    border: 1px dashed var(--line); border-radius: 8px; background: none;
+    color: var(--navy-light); font-size: 13px; cursor: pointer;
+  }
+  .add-row:hover { background: var(--cream); }
+  .empty-note { font-size: 12.5px; color: #8a8272; text-align: center; padding: 14px 4px; }
+
+  .summary { background: var(--navy); color: var(--cream); border-radius: 10px; padding: 18px 16px; }
+  .summary h2 { font-size: 14px; margin: 0 0 14px; color: var(--gold-light); font-weight: 600; }
+  .summary .line { display: flex; justify-content: space-between; font-size: 13.5px; padding: 6px 0; border-bottom: 1px solid rgba(245,241,232,0.12); }
+  .summary .line:last-child { border-bottom: none; }
+  .summary .line span:last-child { font-variant-numeric: tabular-nums; }
+  .summary .line.total { font-size: 16px; font-weight: 700; padding-top: 12px; color: var(--gold-light); }
+  .summary .line.avg { opacity: 0.68; font-size: 11.5px; }
+
+  .review-box {
+    margin-top: 14px; padding: 12px; border-radius: 8px; background: rgba(201,162,39,0.15);
+  }
+  .review-box .rb-title { font-size: 11.5px; color: var(--gold-light); margin-bottom: 6px; }
+  .review-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: rgba(245,241,232,0.9); }
+  .review-empty { font-size: 11.5px; color: rgba(245,241,232,0.6); }
+
+  footer { text-align: center; font-size: 11px; color: #a89f8a; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header><h1>サブスク・固定費の見直し</h1></header>
+
+  <section>
+    <div class="section-head">
+      <h2>一覧</h2>
+      <div class="subtotal" id="monthlySubtotal">¥0<small>月額合計</small></div>
+    </div>
+    <ul class="rows" id="itemRows"></ul>
+    <div class="empty-note" id="emptyNote" style="display:none;">項目がありません。下のボタンから追加してください</div>
+    <button class="add-row" id="addItemBtn">＋ 項目を追加</button>
+  </section>
+
+  <div class="summary">
+    <h2>見直しサマリー</h2>
+    <div class="line total"><span>月額合計</span><span id="sumMonthly">¥0</span></div>
+    <div class="line avg"><span>年間換算</span><span id="sumAnnual">¥0</span></div>
+    <div class="review-box">
+      <div class="rb-title">未使用（見直し候補）</div>
+      <div id="reviewList"></div>
+      <div class="line total" style="border-top:1px solid rgba(245,241,232,0.2); margin-top:6px; padding-top:8px;">
+        <span>解約すれば毎月</span><span id="reviewMonthly">¥0</span>
+      </div>
+      <div class="line avg"><span>年間では</span><span id="reviewAnnual">¥0</span></div>
+    </div>
+  </div>
+
+  <footer>サブスク・固定費の見直し ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'kotei-mikaeshi-v1';
+
+const defaultData = {
+  items: [
+    { name: '', amount: null, active: true }
+  ]
+};
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return structuredClone(defaultData);
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed.items)) return structuredClone(defaultData);
+    return parsed;
+  }catch(e){ return structuredClone(defaultData); }
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = load();
+
+const rowsEl = document.getElementById('itemRows');
+const fmt = (n) => '¥' + Math.round(n||0).toLocaleString('ja-JP');
+function escapeAttr(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+
+function renderRows(){
+  rowsEl.innerHTML = '';
+  document.getElementById('emptyNote').style.display = state.items.length ? 'none' : 'block';
+
+  state.items.forEach((item, idx)=>{
+    const row = document.createElement('li');
+    row.className = 'row' + (item.active ? '' : ' inactive');
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = item.name;
+    nameInput.placeholder = '項目名(例: Netflix、電気代)';
+    nameInput.addEventListener('input', e=>{ item.name = e.target.value; save(); recalc(); });
+
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.className = 'amount';
+    amountInput.inputMode = 'numeric';
+    amountInput.step = '100';
+    amountInput.placeholder = '0';
+    amountInput.value = (item.amount === null || item.amount === undefined) ? '' : item.amount;
+    amountInput.addEventListener('input', e=>{
+      item.amount = e.target.value === '' ? null : (parseFloat(e.target.value)||0);
+      save(); recalc();
+    });
+
+    const unit = document.createElement('span');
+    unit.className = 'unit';
+    unit.textContent = '円/月';
+
+    const toggle = document.createElement('button');
+    toggle.className = 'toggle ' + (item.active ? 'active' : 'inactive-btn');
+    toggle.textContent = item.active ? '使用中' : '未使用';
+    toggle.addEventListener('click', ()=>{
+      item.active = !item.active;
+      save(); render();
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', ()=>{
+      state.items.splice(idx,1);
+      save(); render();
+    });
+
+    row.appendChild(nameInput);
+    row.appendChild(amountInput);
+    row.appendChild(unit);
+    row.appendChild(toggle);
+    row.appendChild(delBtn);
+    rowsEl.appendChild(row);
+  });
+}
+
+function recalc(){
+  const activeTotal = state.items.filter(i=>i.active).reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const allTotal = state.items.reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const inactiveItems = state.items.filter(i=>!i.active && (Number(i.amount)||0) > 0);
+  const inactiveTotal = inactiveItems.reduce((s,i)=>s+(Number(i.amount)||0),0);
+
+  document.getElementById('monthlySubtotal').innerHTML = fmt(allTotal) + '<small>月額合計</small>';
+  document.getElementById('sumMonthly').textContent = fmt(activeTotal);
+  document.getElementById('sumAnnual').textContent = fmt(activeTotal*12);
+
+  document.getElementById('reviewMonthly').textContent = fmt(inactiveTotal);
+  document.getElementById('reviewAnnual').textContent = fmt(inactiveTotal*12);
+
+  const list = document.getElementById('reviewList');
+  if(inactiveItems.length){
+    list.innerHTML = inactiveItems.map(i=>`<div class="review-row"><span>${escapeAttr(i.name||'（無題）')}</span><span>${fmt(i.amount)}</span></div>`).join('');
+  }else{
+    list.innerHTML = '<div class="review-empty">未使用としてマークした項目はありません</div>';
+  }
+  save();
+}
+
+document.getElementById('addItemBtn').addEventListener('click', ()=>{
+  state.items.push({ name:'', amount:null, active:true });
+  save(); render();
+});
+
+function render(){
+  renderRows();
+  recalc();
+}
+
+render();
+</script>
+</body>
+</html>
