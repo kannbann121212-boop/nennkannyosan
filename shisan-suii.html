@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>資産推移</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='8' y='8' width='112' height='112' rx='25' fill='%232c3e50'/%3E%3Crect x='32' y='76' width='16' height='24' rx='4' fill='%238ba888'/%3E%3Crect x='56' y='60' width='16' height='40' rx='4' fill='%238ba888'/%3E%3Crect x='80' y='44' width='16' height='56' rx='4' fill='%238ba888'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="資産推移">
+<meta name="theme-color" content="#2c3e50">
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { padding: 8px 2px 16px; border-bottom: 2px solid var(--navy); margin-bottom: 20px; }
+  header h1 { font-size: 21px; margin: 0; color: var(--navy); letter-spacing: 0.02em; }
+
+  section { margin-bottom: 18px; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--cream-dark); border-bottom: 1px solid var(--line); }
+  .section-head h2 { font-size: 14.5px; margin: 0; color: var(--navy); }
+  .section-head .note { font-size: 11px; color: #8a8272; }
+  .section-body { padding: 14px; }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .field-row:last-child { margin-bottom: 0; }
+  .field-row label { font-size: 12.5px; color: var(--navy); flex: 1; }
+  .field-row .unit { font-size: 12px; color: #8a8272; flex-shrink: 0; }
+  .field-row input[type="number"] {
+    flex: none; width: 110px; border: none; background: var(--cream); border-radius: 6px;
+    font-size: 14px; font-weight: 600; padding: 8px 8px; text-align: right; color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+  .field-row input[type="number"]:focus { outline: 1px solid var(--navy-light); }
+
+  .chart-wrap { margin: 4px 0 10px; }
+  .chart-wrap svg { width: 100%; height: auto; display: block; }
+  .chart-ticks { display: flex; justify-content: space-between; font-size: 10.5px; color: #a89f8a; margin-top: 2px; }
+
+  .summary { background: var(--navy); color: var(--cream); border-radius: 10px; padding: 16px 14px; margin: -14px -14px 14px; }
+  .summary .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-box { background: rgba(245,241,232,0.08); border-radius: 8px; padding: 10px 12px; }
+  .summary-box .label { font-size: 11px; color: rgba(245,241,232,0.68); margin-bottom: 4px; }
+  .summary-box .value { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .summary-box .value.minus { color: #f0a184; }
+  .summary-box .value.plus { color: var(--gold-light); }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.suii { border-collapse: collapse; width: 100%; min-width: 100%; font-size: 11.5px; }
+  table.suii th, table.suii td { padding: 7px 6px; text-align: right; white-space: nowrap; border-bottom: 1px solid #f0ece1; }
+  table.suii th { font-size: 10.5px; color: var(--navy-light); font-weight: 700; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; }
+  table.suii td.col-year, table.suii th.col-year { text-align: left; font-weight: 700; color: var(--navy); }
+  table.suii td.col-event, table.suii th.col-event { text-align: left; white-space: normal; color: var(--coral); font-weight: 600; min-width: 100px; }
+  table.suii tr.is-current td { background: var(--gold-light); }
+  table.suii tr.is-current td.col-year { color: var(--gold); }
+  table.suii td.col-assets.minus { color: var(--coral); }
+
+  .legend-note { font-size: 11px; color: #8a8272; text-align: center; margin-top: 10px; line-height: 1.7; }
+  .empty-note { font-size: 12px; color: #8a8272; line-height: 1.6; margin-top: 8px; }
+
+  footer { text-align: center; font-size: 11px; color: #a89f8a; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header><h1>資産推移</h1></header>
+
+  <section>
+    <div class="section-head"><h2>現在の資産とペース</h2></div>
+    <div class="section-body">
+      <div class="field-row">
+        <label>現在の資産</label>
+        <input type="number" inputmode="numeric" id="currentAssetsInput" placeholder="例: 3000000">
+        <span class="unit">円</span>
+      </div>
+      <div class="field-row">
+        <label>毎年の積立・投資額</label>
+        <input type="number" inputmode="numeric" id="annualContribInput" placeholder="例: 600000">
+        <span class="unit">円/年</span>
+      </div>
+      <div class="field-row">
+        <label>想定年利</label>
+        <input type="number" inputmode="numeric" id="annualRateInput" step="0.1" placeholder="例: 3">
+        <span class="unit">%</span>
+      </div>
+      <div class="field-row">
+        <label>表示年数</label>
+        <input type="number" inputmode="numeric" id="simYearsInput" min="1" max="60">
+        <span class="unit">年</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>資産の推移</h2>
+      <span class="note" id="eventSourceNote"></span>
+    </div>
+    <div class="section-body">
+      <div class="summary">
+        <div class="row2">
+          <div class="summary-box">
+            <div class="label">現在の資産</div>
+            <div class="value" id="sumStart">¥0</div>
+          </div>
+          <div class="summary-box">
+            <div class="label" id="sumEndLabel">N年後の予測資産</div>
+            <div class="value" id="sumEnd">¥0</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chartWrap"></div>
+      <div class="chart-ticks" id="chartTicks"></div>
+      <div class="table-wrap">
+        <table class="suii" id="suiiTable"></table>
+      </div>
+      <div class="legend-note">金色の行は今年です／家族年表で入力したイベントの金額を年ごとに反映します</div>
+    </div>
+  </section>
+
+  <footer>資産推移 ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'shisan-suii-v1';
+const NENPYO_KEY = 'kazoku-nenpyo-v2';
+
+const defaultData = {
+  currentAssets: '',
+  annualContrib: '',
+  annualRate: '',
+  simYears: 30
+};
+
+let data = loadData();
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return {...defaultData};
+    return {...defaultData, ...JSON.parse(raw)};
+  }catch(e){ return {...defaultData}; }
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ console.error(e); }
+}
+
+function loadEvents(){
+  try{
+    const raw = localStorage.getItem(NENPYO_KEY);
+    if(!raw) return [];
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed.events)) return [];
+    return parsed.events.filter(ev => ev.name && (parseFloat(ev.amount)||0) !== 0);
+  }catch(e){ return []; }
+}
+
+function yen(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + '¥' + Math.round(Math.abs(n)).toLocaleString('ja-JP');
+}
+function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+
+function computeProjection(){
+  const start = parseFloat(data.currentAssets) || 0;
+  const contrib = parseFloat(data.annualContrib) || 0;
+  const rate = (parseFloat(data.annualRate) || 0) / 100;
+  const years = Math.max(1, Math.min(60, parseInt(data.simYears) || 30));
+  const events = loadEvents();
+
+  function eventsForOffset(offset){
+    return events.filter(ev => (parseInt(ev.yearOffset)||0) === offset);
+  }
+
+  const rows = [];
+  let assets = start + eventsForOffset(0).reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  rows.push({ offset:0, assets, events: eventsForOffset(0) });
+
+  for(let offset=1; offset<=years; offset++){
+    const evs = eventsForOffset(offset);
+    assets = assets*(1+rate) + contrib + evs.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    rows.push({ offset, assets, events: evs });
+  }
+  return rows;
+}
+
+function renderChart(rows){
+  const W = 320, H = 140, padL = 4, padR = 4, padT = 10, padB = 10;
+  const vals = rows.map(r=>r.assets);
+  let min = Math.min(...vals, 0);
+  let max = Math.max(...vals, 0);
+  if(min === max){ min -= 1; max += 1; }
+  const spanX = W - padL - padR;
+  const spanY = H - padT - padB;
+
+  const pts = rows.map((r,i)=>{
+    const x = padL + (spanX * i / (rows.length-1));
+    const y = padT + spanY - ((r.assets - min) / (max - min)) * spanY;
+    return [x,y];
+  });
+
+  const pathD = pts.map((p,i)=> (i===0?'M':'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const areaD = pathD + ` L${pts[pts.length-1][0].toFixed(1)} ${(padT+spanY).toFixed(1)} L${pts[0][0].toFixed(1)} ${(padT+spanY).toFixed(1)} Z`;
+
+  let zeroLine = '';
+  if(min < 0 && max > 0){
+    const zy = padT + spanY - ((0 - min)/(max-min))*spanY;
+    zeroLine = `<line x1="${padL}" y1="${zy.toFixed(1)}" x2="${W-padR}" y2="${zy.toFixed(1)}" stroke="#ddd4c0" stroke-width="1" stroke-dasharray="3 3"/>`;
+  }
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" role="img"><title>資産推移グラフ</title>
+    <path d="${areaD}" fill="#c9a22722"/>
+    ${zeroLine}
+    <path d="${pathD}" fill="none" stroke="#c9a227" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${pts[0][0].toFixed(1)}" cy="${pts[0][1].toFixed(1)}" r="3" fill="#2c3e50"/>
+    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="#2c3e50"/>
+  </svg>`;
+  document.getElementById('chartWrap').innerHTML = svg;
+
+  const baseYear = new Date().getFullYear();
+  const endYear = baseYear + rows.length - 1;
+  const midOffset = Math.floor((rows.length-1)/2);
+  document.getElementById('chartTicks').innerHTML =
+    `<span>${baseYear}年</span><span>${baseYear+midOffset}年</span><span>${endYear}年</span>`;
+}
+
+function renderTable(rows){
+  const baseYear = new Date().getFullYear();
+  const table = document.getElementById('suiiTable');
+  let thead = '<thead><tr><th class="col-year">年</th><th>資産</th><th class="col-event">できごと</th></tr></thead>';
+  let tbody = '<tbody>';
+  rows.forEach(r=>{
+    const year = baseYear + r.offset;
+    const isCurrent = r.offset === 0;
+    const eventNames = r.events.map(e=>escapeHtml(e.name)).join('、');
+    tbody += `<tr class="${isCurrent?'is-current':''}">`;
+    tbody += `<td class="col-year">${year}年${isCurrent?'(今年)':''}</td>`;
+    tbody += `<td class="col-assets ${r.assets<0?'minus':''}">${yen(r.assets)}</td>`;
+    tbody += `<td class="col-event">${eventNames}</td>`;
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+  table.innerHTML = thead + tbody;
+}
+
+function renderSummary(rows){
+  document.getElementById('sumStart').textContent = yen(rows[0].assets);
+  const last = rows[rows.length-1];
+  document.getElementById('sumEndLabel').textContent = `${last.offset}年後の予測資産`;
+  const endEl = document.getElementById('sumEnd');
+  endEl.textContent = yen(last.assets);
+  endEl.className = 'value ' + (last.assets >= rows[0].assets ? 'plus' : 'minus');
+}
+
+function render(){
+  const events = loadEvents();
+  document.getElementById('eventSourceNote').textContent = events.length ? `家族年表から${events.length}件` : '';
+  const rows = computeProjection();
+  renderSummary(rows);
+  renderChart(rows);
+  renderTable(rows);
+}
+
+document.getElementById('currentAssetsInput').value = data.currentAssets;
+document.getElementById('annualContribInput').value = data.annualContrib;
+document.getElementById('annualRateInput').value = data.annualRate;
+document.getElementById('simYearsInput').value = data.simYears;
+
+document.getElementById('currentAssetsInput').addEventListener('input', e=>{ data.currentAssets = e.target.value; saveData(); render(); });
+document.getElementById('annualContribInput').addEventListener('input', e=>{ data.annualContrib = e.target.value; saveData(); render(); });
+document.getElementById('annualRateInput').addEventListener('input', e=>{ data.annualRate = e.target.value; saveData(); render(); });
+document.getElementById('simYearsInput').addEventListener('input', e=>{ data.simYears = parseInt(e.target.value)||30; saveData(); render(); });
+
+render();
+</script>
+</body>
+</html>
