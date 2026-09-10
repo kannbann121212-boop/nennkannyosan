@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>家族年表</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='8' y='8' width='112' height='112' rx='25' fill='%232c3e50'/%3E%3Crect x='32' y='76' width='16' height='24' rx='4' fill='%238ba888'/%3E%3Crect x='56' y='60' width='16' height='40' rx='4' fill='%238ba888'/%3E%3Crect x='80' y='44' width='16' height='56' rx='4' fill='%238ba888'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="家族年表">
+<meta name="theme-color" content="#2c3e50">
+<style>
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #46617a;
+    --sage: #8ba888;
+    --sage-light: #eaf0e8;
+    --coral: #d9764a;
+    --coral-light: #fbe9e0;
+    --gold: #c9a227;
+    --gold-light: #f7edc9;
+    --cream: #f5f1e8;
+    --cream-dark: #ece5d5;
+    --ink: #2c2a26;
+    --line: #ddd4c0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  header {
+    padding: 8px 2px 16px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 21px;
+    margin: 0;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+
+  section {
+    margin-bottom: 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 { font-size: 14.5px; margin: 0; color: var(--navy); }
+  .section-head .count { font-size: 11.5px; color: #8a8272; }
+  .section-desc {
+    font-size: 11.5px;
+    color: #8a8272;
+    line-height: 1.6;
+    padding: 10px 14px 0;
+  }
+  .section-body { padding: 14px; }
+
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .field-row label {
+    font-size: 12.5px;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .field-row .unit { font-size: 12px; color: #8a8272; flex-shrink: 0; }
+  .field-row input[type="number"] {
+    flex: none;
+    width: 80px;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 8px;
+    text-align: right;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+  .field-row input[type="number"]:focus { outline: 1px solid var(--navy-light); }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 2px;
+    border-bottom: 1px solid #f0ece1;
+  }
+  .row:last-child { border-bottom: none; }
+  .row input[type="text"] {
+    flex: 1.4;
+    min-width: 0;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 13.5px;
+    padding: 7px 8px;
+    color: var(--ink);
+  }
+  .row input[type="number"] {
+    flex: none;
+    width: 56px;
+    border: none;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 13.5px;
+    padding: 7px 4px;
+    text-align: center;
+    color: var(--ink);
+  }
+  .row .unit { flex: none; font-size: 11.5px; color: #8a8272; }
+  .row button.del {
+    flex: none;
+    border: none;
+    background: none;
+    color: #b7ab90;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 2px;
+  }
+  .row button.del:hover { color: var(--coral); }
+
+  .item-card {
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .item-card:last-child { margin-bottom: 0; }
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .item-top input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 7px 8px;
+    color: var(--ink);
+  }
+  .item-top button.del {
+    flex: none;
+    border: none;
+    background: none;
+    color: #b7ab90;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 2px;
+  }
+  .item-top button.del:hover { color: var(--coral); }
+
+  .card-field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    color: #8a8272;
+  }
+  .card-field-row:last-child { margin-bottom: 0; }
+  .card-field-row .field-label { flex-shrink: 0; width: 62px; }
+  .card-field-row input[type="number"] {
+    min-width: 0;
+    flex: 1;
+    border: none;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 12.5px;
+    padding: 7px 6px;
+    text-align: right;
+    color: var(--ink);
+  }
+  .card-field-row .unit { flex-shrink: 0; font-size: 11px; color: #8a8272; }
+
+  .add-row {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 9px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: none;
+    color: var(--navy-light);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .add-row:hover { background: var(--cream); }
+
+  .empty-note { font-size: 12.5px; color: #8a8272; text-align: center; padding: 14px 4px; }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table.nenpyo {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 100%;
+    font-size: 11.5px;
+  }
+  table.nenpyo th, table.nenpyo td {
+    padding: 7px 6px;
+    text-align: center;
+    white-space: nowrap;
+    border-bottom: 1px solid #f0ece1;
+  }
+  table.nenpyo th {
+    font-size: 10.5px;
+    color: var(--navy-light);
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: #fff;
+  }
+  table.nenpyo td.col-year { font-weight: 700; color: var(--navy); text-align: left; }
+  table.nenpyo th.col-year { text-align: left; }
+  table.nenpyo td.col-event {
+    text-align: left;
+    white-space: normal;
+    color: var(--coral);
+    font-weight: 600;
+    min-width: 110px;
+  }
+  table.nenpyo th.col-event { text-align: left; }
+  table.nenpyo tr.is-current td { background: var(--gold-light); }
+  table.nenpyo tr.is-current td.col-year { color: var(--gold); }
+
+  .legend-note { font-size: 11px; color: #8a8272; text-align: center; margin-top: 10px; line-height: 1.7; }
+
+  footer { text-align: center; font-size: 11px; color: #a89f8a; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header><h1>家族年表</h1></header>
+
+  <section>
+    <div class="section-head"><h2>表示年数</h2></div>
+    <div class="section-body">
+      <div class="field-row">
+        <label>表示する年数</label>
+        <input type="number" id="simYearsInput" min="1" max="60">
+        <span class="unit">年</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>家族メンバー</h2>
+      <span class="count" id="memberCount"></span>
+    </div>
+    <div class="section-desc">名前と「現在の年齢」を入力してください（夫婦＋子供1〜2人が目安です）</div>
+    <div class="section-body">
+      <ul class="rows" id="memberList"></ul>
+      <div class="empty-note" id="memberEmptyNote" style="display:none;">メンバーがいません。下のボタンから追加してください</div>
+      <button class="add-row" id="addMemberBtn">＋ 家族メンバーを追加</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>ライフイベント</h2>
+      <span class="count" id="eventCount"></span>
+    </div>
+    <div class="section-desc">結婚・進学・住宅取得・退職など、今後の予定を「金額（±）」つきで入力できます（支出はマイナス、収入や退職金などのプラスの入りはそのままの金額。金額は空欄でもOK）</div>
+    <div class="section-body">
+      <div id="eventList"></div>
+      <div class="empty-note" id="eventEmptyNote" style="display:none;">イベントがありません。下のボタンから追加してください</div>
+      <button class="add-row" id="addEventBtn">＋ イベントを追加</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>年表</h2></div>
+    <div class="section-body">
+      <div class="table-wrap">
+        <table class="nenpyo" id="nenpyoTable"></table>
+      </div>
+      <div class="legend-note">金色の行は今年です／イベント欄には該当年の予定が表示されます</div>
+    </div>
+  </section>
+
+  <footer>家族年表 ・ すべてのデータはこの端末内に保存されます</footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'kazoku-nenpyo-v2';
+const OLD_LIFEPLAN_KEY = 'lifeplan-tsukurikata-v1';
+
+const defaultData = {
+  simYears: 30,
+  familyMembers: [{name:'自分', age:''}],
+  events: [{yearOffset:5, name:'住宅取得の頭金', amount:-3000000}],
+  migratedFromLifeplan: false,
+};
+
+let data = loadData();
+migrateFromOldLifeplan();
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(defaultData));
+    return {...JSON.parse(JSON.stringify(defaultData)), ...JSON.parse(raw)};
+  }catch(e){ return JSON.parse(JSON.stringify(defaultData)); }
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ console.error(e); }
+}
+
+function migrateFromOldLifeplan(){
+  if(data.migratedFromLifeplan) return;
+  try{
+    const raw = localStorage.getItem(OLD_LIFEPLAN_KEY);
+    if(raw){
+      const old = JSON.parse(raw);
+      if(old){
+        if(Array.isArray(old.familyMembers) && old.familyMembers.length){
+          data.familyMembers = old.familyMembers;
+        }
+        if(Array.isArray(old.events) && old.events.length){
+          data.events = old.events;
+        }
+        if(old.simYears){
+          data.simYears = old.simYears;
+        }
+      }
+    }
+  }catch(e){}
+  data.migratedFromLifeplan = true;
+  saveData();
+}
+
+function escapeAttr(str){ const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+function escapeHtml(str){ return escapeAttr(str); }
+
+/* ---------- 家族メンバー ---------- */
+function renderMemberList(){
+  const container = document.getElementById('memberList');
+  container.innerHTML = '';
+  document.getElementById('memberEmptyNote').style.display = data.familyMembers.length ? 'none' : 'block';
+  document.getElementById('memberCount').textContent = data.familyMembers.length ? data.familyMembers.length + '人' : '';
+
+  data.familyMembers.forEach((m, idx)=>{
+    const row = document.createElement('li');
+    row.className = 'row';
+    row.innerHTML = `
+      <input type="text" value="${escapeAttr(m.name)}" placeholder="名前(例: 自分・配偶者・長男)" maxlength="12">
+      <input type="number" inputmode="numeric" value="${m.age}" placeholder="年齢">
+      <span class="unit">歳</span>
+      <button class="del">×</button>`;
+    const nameInput = row.querySelector('input[type=text]');
+    const ageInput = row.querySelector('input[type=number]');
+    const delBtn = row.querySelector('.del');
+
+    nameInput.addEventListener('input', e=>{ m.name = e.target.value; saveData(); renderTable(); });
+    ageInput.addEventListener('input', e=>{ m.age = e.target.value; saveData(); renderTable(); });
+    delBtn.addEventListener('click', ()=>{
+      data.familyMembers.splice(idx,1);
+      saveData(); renderMemberList(); renderTable();
+    });
+    container.appendChild(row);
+  });
+}
+document.getElementById('addMemberBtn').addEventListener('click', ()=>{
+  data.familyMembers.push({ name:'', age:'' });
+  saveData();
+  renderMemberList();
+  renderTable();
+});
+
+/* ---------- ライフイベント ---------- */
+function renderEventList(){
+  const container = document.getElementById('eventList');
+  container.innerHTML = '';
+  document.getElementById('eventEmptyNote').style.display = data.events.length ? 'none' : 'block';
+  document.getElementById('eventCount').textContent = data.events.length ? data.events.length + '件' : '';
+
+  data.events.forEach((ev, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.innerHTML = `
+      <div class="item-top">
+        <input type="text" class="f-name" value="${escapeAttr(ev.name)}" placeholder="イベント名(例: 長男 小学校入学)" maxlength="20">
+        <button class="del">×</button>
+      </div>
+      <div class="card-field-row">
+        <span class="field-label">時期</span>
+        <input type="number" inputmode="numeric" class="f-year" value="${ev.yearOffset}">
+        <span class="unit">年後</span>
+      </div>
+      <div class="card-field-row">
+        <span class="field-label">金額(±)</span>
+        <input type="number" inputmode="numeric" class="f-amount" value="${ev.amount===0?'':ev.amount}" placeholder="空欄でもOK">
+        <span class="unit">円</span>
+      </div>`;
+    const nameInput = card.querySelector('.f-name');
+    const yearInput = card.querySelector('.f-year');
+    const amountInput = card.querySelector('.f-amount');
+    const delBtn = card.querySelector('.del');
+
+    nameInput.addEventListener('input', e=>{ ev.name = e.target.value; saveData(); renderTable(); });
+    yearInput.addEventListener('input', e=>{ ev.yearOffset = parseInt(e.target.value)||0; saveData(); renderTable(); });
+    amountInput.addEventListener('input', e=>{ ev.amount = e.target.value===''?0:(parseFloat(e.target.value)||0); saveData(); });
+    delBtn.addEventListener('click', ()=>{
+      data.events.splice(idx,1);
+      saveData(); renderEventList(); renderTable();
+    });
+    container.appendChild(card);
+  });
+}
+document.getElementById('addEventBtn').addEventListener('click', ()=>{
+  data.events.push({ yearOffset:1, name:'', amount:0 });
+  saveData();
+  renderEventList();
+  renderTable();
+});
+
+/* ---------- 年表テーブル ---------- */
+function renderTable(){
+  const baseYear = new Date().getFullYear();
+  const years = Math.max(1, Math.min(60, parseInt(data.simYears) || 30));
+
+  const table = document.getElementById('nenpyoTable');
+
+  let thead = '<thead><tr><th class="col-year">年</th>';
+  data.familyMembers.forEach(m=>{
+    thead += `<th>${escapeHtml(m.name || '（無題）')}</th>`;
+  });
+  thead += '<th class="col-event">できごと</th></tr></thead>';
+
+  let tbody = '<tbody>';
+  for(let offset=0; offset<years; offset++){
+    const year = baseYear + offset;
+    const isCurrent = offset === 0;
+    const eventsThisYear = data.events.filter(ev => (parseInt(ev.yearOffset)||0) === offset && ev.name);
+    const hasEvent = eventsThisYear.length > 0;
+
+    tbody += `<tr class="${isCurrent?'is-current':''} ${hasEvent?'has-event':''}">`;
+    tbody += `<td class="col-year">${year}年${isCurrent?'(今年)':''}</td>`;
+    data.familyMembers.forEach(m=>{
+      const age = m.age === '' || m.age === undefined ? '' : (parseInt(m.age)||0) + offset;
+      tbody += `<td>${age === '' ? '－' : age + '歳'}</td>`;
+    });
+    tbody += `<td class="col-event">${eventsThisYear.map(ev=>escapeHtml(ev.name)).join('、') || ''}</td>`;
+    tbody += '</tr>';
+  }
+  tbody += '</tbody>';
+
+  table.innerHTML = thead + tbody;
+}
+
+/* ---------- 表示年数設定 ---------- */
+document.getElementById('simYearsInput').value = data.simYears;
+document.getElementById('simYearsInput').addEventListener('input', e=>{
+  data.simYears = parseInt(e.target.value)||30;
+  saveData();
+  renderTable();
+});
+
+function render(){
+  renderMemberList();
+  renderEventList();
+  renderTable();
+}
+
+render();
+</script>
+</body>
+</html>
